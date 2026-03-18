@@ -127,6 +127,7 @@ void GraphManager::setXAxis(qreal minimum, qreal maximum, qreal tickStep, const 
     }
 
     m_xAxis = {minimum, maximum, tickStep, title};
+    m_xAxisBounds = m_xAxis;
     emit xAxisChanged();
 }
 
@@ -149,12 +150,34 @@ void GraphManager::zoomX(qreal factor, qreal centerRatio)
     centerRatio = qBound(0.0, centerRatio, 1.0);
     const qreal currentRange = m_xAxis.maximum - m_xAxis.minimum;
     const qreal centerValue = m_xAxis.minimum + currentRange * centerRatio;
-    const qreal newRange = qBound(0.1, currentRange * factor, 1000000.0);
+    const qreal minimumRange = qMax<qreal>(m_xAxisBounds.tickStep / 8.0, 60.0 * 1000.0);
+    const qreal maximumRange = m_xAxisBounds.maximum - m_xAxisBounds.minimum;
+    const qreal newRange = qBound(minimumRange, currentRange * factor, maximumRange);
+
+    if (qFuzzyCompare(newRange, maximumRange)) {
+        m_xAxis.minimum = m_xAxisBounds.minimum;
+        m_xAxis.maximum = m_xAxisBounds.maximum;
+        emit xAxisChanged();
+        return;
+    }
+
     const qreal leftPart = centerRatio * newRange;
     const qreal rightPart = newRange - leftPart;
+    qreal minimum = centerValue - leftPart;
+    qreal maximum = centerValue + rightPart;
 
-    m_xAxis.minimum = centerValue - leftPart;
-    m_xAxis.maximum = centerValue + rightPart;
+    if (minimum < m_xAxisBounds.minimum) {
+        maximum += m_xAxisBounds.minimum - minimum;
+        minimum = m_xAxisBounds.minimum;
+    }
+
+    if (maximum > m_xAxisBounds.maximum) {
+        minimum -= maximum - m_xAxisBounds.maximum;
+        maximum = m_xAxisBounds.maximum;
+    }
+
+    m_xAxis.minimum = minimum;
+    m_xAxis.maximum = maximum;
     emit xAxisChanged();
 }
 

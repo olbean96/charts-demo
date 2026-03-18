@@ -75,8 +75,12 @@ void GraphView::wheelEvent(QWheelEvent *event)
         return;
     }
 
+    const QRectF graphArea = m_manager->renderer()->chartRect(boundingRect().size().toSize());
+    const qreal mouseX = event->position().x();
     const qreal factor = event->angleDelta().y() > 0 ? 0.85 : 1.15;
-    const qreal centerRatio = width() > 0 ? event->position().x() / width() : 0.5;
+    const qreal centerRatio = graphArea.width() > 0
+        ? qBound(0.0, (mouseX - graphArea.left()) / graphArea.width(), 1.0)
+        : 0.5;
     m_manager->zoomX(factor, centerRatio);
     event->accept();
 }

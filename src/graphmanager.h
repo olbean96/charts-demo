@@ -198,6 +198,7 @@ private:
     LegendModel m_legendModel;
     GraphRenderer m_renderer;
     AxisConfig m_xAxis;
+    AxisConfig m_xAxisBounds;
     AxisConfig m_yAxis;
     bool m_hasSelection = false;
     qreal m_selectedX = 0.0;

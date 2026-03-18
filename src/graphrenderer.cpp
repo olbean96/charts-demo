@@ -3,16 +3,21 @@
 #include <QDateTime>
 #include <QPainter>
 #include <QPen>
+#include <QVector>
 
 #include <algorithm>
 #include <limits>
 
 namespace {
 constexpr int kLeftMargin = 92;
-constexpr int kRightMargin = 20;
+constexpr int kRightMargin = 36;
 constexpr int kTopMargin = 20;
 constexpr int kBottomMargin = 110;
 constexpr qreal kPointRadius = 3.5;
+constexpr qreal kXAxisLabelWidth = 126.0;
+constexpr qreal kXAxisDateTop = 6.0;
+constexpr qreal kXAxisTimeTop = 22.0;
+constexpr qreal kXAxisLineHeight = 14.0;
 }
 
 GraphRenderer::GraphRenderer(QObject *parent)
@@ -151,10 +156,16 @@ QPolygonF GraphRenderer::buildPolyline(const QVector<GraphPoint> &points,
     return polyline;
 }
 
-QString GraphRenderer::formatXAxisLabel(qreal xValue) const
+QString GraphRenderer::formatXAxisDate(qreal xValue) const
 {
     const QDateTime dateTime = QDateTime::fromMSecsSinceEpoch(static_cast<qint64>(xValue));
-    return dateTime.toString(QStringLiteral("dd.MM.yyyy\nHH:mm"));
+    return dateTime.toString(QStringLiteral("dd.MM.yyyy"));
+}
+
+QString GraphRenderer::formatXAxisTime(qreal xValue) const
+{
+    const QDateTime dateTime = QDateTime::fromMSecsSinceEpoch(static_cast<qint64>(xValue));
+    return dateTime.toString(QStringLiteral("HH:mm"));
 }
 
 void GraphRenderer::drawAxes(QPainter &painter,
@@ -185,14 +196,36 @@ void GraphRenderer::drawAxes(QPainter &painter,
     const QPen gridPen(QColor("#e3ddd4"), 1.0, Qt::DashLine);
     painter.setPen(gridPen);
 
+    QFont tickFont = painter.font();
+    tickFont.setPixelSize(10);
+    painter.setFont(tickFont);
+
+    QVector<qreal> xTickValues;
     for (qreal xValue = xAxis.minimum; xValue <= xAxis.maximum + 0.0001; xValue += xAxis.tickStep) {
+        xTickValues.append(xValue);
+    }
+
+    for (int index = 0; index < xTickValues.size(); ++index) {
+        const qreal xValue = xTickValues.at(index);
         const qreal ratio = (xValue - xAxis.minimum) / (xAxis.maximum - xAxis.minimum);
         const qreal x = graphArea.left() + ratio * graphArea.width();
         painter.drawLine(QPointF(x, graphArea.top()), QPointF(x, graphArea.bottom()));
+
+        if (index == xTickValues.size() - 1) {
+            continue;
+        }
+
         painter.setPen(QColor("#4d4d4d"));
-        painter.drawText(QRectF(x - 60, graphArea.bottom() + 6, 120, 40),
-                         Qt::AlignHCenter | Qt::AlignTop,
-                         formatXAxisLabel(xValue));
+        qreal labelLeft = std::clamp(x + 2.0,
+                                     graphArea.left(),
+                                     graphArea.right() - kXAxisLabelWidth);
+
+        painter.drawText(QRectF(labelLeft, graphArea.bottom() + kXAxisDateTop, kXAxisLabelWidth, kXAxisLineHeight),
+                         Qt::AlignLeft | Qt::AlignTop,
+                         formatXAxisDate(xValue));
+        painter.drawText(QRectF(labelLeft, graphArea.bottom() + kXAxisTimeTop, kXAxisLabelWidth, kXAxisLineHeight),
+                         Qt::AlignLeft | Qt::AlignTop,
+                         formatXAxisTime(xValue));
         painter.setPen(gridPen);
     }
 

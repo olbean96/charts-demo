@@ -82,7 +82,8 @@ private:
                             const QRectF &graphArea,
                             const AxisConfig &xAxis,
                             const AxisConfig &yAxis) const;
-    QString formatXAxisLabel(qreal xValue) const;
+    QString formatXAxisDate(qreal xValue) const;
+    QString formatXAxisTime(qreal xValue) const;
     void drawAxes(QPainter &painter,
                   const QRectF &graphArea,
                   const AxisConfig &xAxis,
