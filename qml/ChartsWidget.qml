@@ -14,6 +14,7 @@ Item {
     readonly property int rowSpacing: 10
     readonly property int legendLineWidth: 26
     readonly property int legendLineHeight: 4
+    readonly property int toggleSize: 28
 
     Rectangle {
         anchors.fill: parent
@@ -30,48 +31,81 @@ Item {
         manager: root.manager
     }
 
-    Rectangle {
-        id: legendPanel
+    Column {
+        id: legendContainer
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: root.panelMargin
-        radius: root.panelRadius
-        color: "#ffffff"
-        border.color: "#d1c7ba"
-        implicitWidth: legendColumn.implicitWidth + root.panelPadding * 2
-        implicitHeight: legendColumn.implicitHeight + root.panelPadding * 2
+        spacing: 8
 
-        Column {
-            id: legendColumn
-            anchors.fill: parent
-            anchors.margins: root.panelPadding
-            spacing: root.rowSpacing
+        Rectangle {
+            id: legendToggleButton
+            width: root.toggleSize
+            height: root.toggleSize
+            anchors.right: parent.right
+            radius: 6
+            color: "#ffffff"
+            border.color: "#d1c7ba"
 
             Text {
-                text: "Легенда"
-                font.pixelSize: 18
-                font.bold: true
+                anchors.centerIn: parent
+                text: root.manager && root.manager.legendExpanded ? "▼" : "▶"
                 color: "#2f2b28"
+                font.pixelSize: 12
             }
 
-            Repeater {
-                model: root.manager ? root.manager.legendModel : null
-
-                delegate: Row {
-                    spacing: 8
-
-                    Rectangle {
-                        width: root.legendLineWidth
-                        height: root.legendLineHeight
-                        radius: height / 2
-                        color: model.color
-                        anchors.verticalCenter: parent.verticalCenter
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    if (root.manager) {
+                        root.manager.toggleLegendExpanded()
                     }
+                }
+            }
+        }
 
-                    Text {
-                        text: model.name
-                        color: "#403830"
-                        font.pixelSize: 14
+        Rectangle {
+            id: legendPanel
+            anchors.right: parent.right
+            visible: root.manager ? root.manager.legendExpanded : true
+            radius: root.panelRadius
+            color: "#ffffff"
+            border.color: "#d1c7ba"
+            implicitWidth: legendColumn.implicitWidth + root.panelPadding * 2
+            implicitHeight: legendColumn.implicitHeight + root.panelPadding * 2
+
+            Column {
+                id: legendColumn
+                anchors.fill: parent
+                anchors.margins: root.panelPadding
+                spacing: root.rowSpacing
+
+                Text {
+                    text: "Легенда"
+                    font.pixelSize: 18
+                    font.bold: true
+                    color: "#2f2b28"
+                }
+
+                Repeater {
+                    model: root.manager ? root.manager.legendModel : null
+
+                    delegate: Row {
+                        spacing: 8
+
+                        Rectangle {
+                            width: root.legendLineWidth
+                            height: root.legendLineHeight
+                            radius: height / 2
+                            color: model.color
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: model.name
+                            color: "#403830"
+                            font.pixelSize: 14
+                        }
                     }
                 }
             }

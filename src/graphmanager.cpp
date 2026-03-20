@@ -2,6 +2,13 @@
 
 #include <QDateTime>
 
+#include <algorithm>
+#include <cmath>
+
+namespace {
+constexpr qreal kInvalidSelection = std::numeric_limits<qreal>::quiet_NaN();
+}
+
 GraphManager::GraphManager(QObject *parent)
     : QObject(parent)
 {
@@ -63,6 +70,21 @@ qreal GraphManager::selectedX() const
 GraphRenderer *GraphManager::renderer() const
 {
     return const_cast<GraphRenderer *>(&m_renderer);
+}
+
+bool GraphManager::isLegendExpanded() const
+{
+    return m_legendExpanded;
+}
+
+void GraphManager::setLegendExpanded(bool expanded)
+{
+    if (m_legendExpanded == expanded) {
+        return;
+    }
+
+    m_legendExpanded = expanded;
+    emit legendExpandedChanged();
 }
 
 QObject *GraphManager::addSeries(const QString &id, const QString &name, const QColor &color, int lineStyle)
@@ -197,6 +219,20 @@ void GraphManager::selectNearestPointX(const QRectF &graphArea, qreal clickX)
     emit xValueSelected(m_selectedX);
 }
 
+void GraphManager::selectNearestPointForXValue(qreal xValue)
+{
+    const qreal nearestX = findNearestSeriesX(xValue);
+    if (qIsNaN(nearestX)) {
+        clearSelection();
+        return;
+    }
+
+    m_selectedX = nearestX;
+    m_hasSelection = true;
+    emit selectionChanged();
+    emit xValueSelected(m_selectedX);
+}
+
 void GraphManager::clearSelection()
 {
     if (!m_hasSelection) {
@@ -205,6 +241,11 @@ void GraphManager::clearSelection()
 
     m_hasSelection = false;
     emit selectionChanged();
+}
+
+void GraphManager::toggleLegendExpanded()
+{
+    setLegendExpanded(!m_legendExpanded);
 }
 
 void GraphManager::createDemoData()
@@ -256,4 +297,40 @@ void GraphManager::attachSeries(GraphSeries *series)
     connect(series, &GraphSeries::colorChanged, this, &GraphManager::seriesChanged);
     connect(series, &GraphSeries::lineStyleChanged, this, &GraphManager::seriesChanged);
     connect(series, &GraphSeries::pointsChanged, this, &GraphManager::seriesChanged);
+}
+
+qreal GraphManager::findNearestSeriesX(qreal targetX) const
+{
+    qreal bestDistance = std::numeric_limits<qreal>::max();
+    qreal bestX = kInvalidSelection;
+
+    for (const GraphSeries *seriesItem : m_seriesModel.series()) {
+        const QVector<GraphPoint> &points = seriesItem->points();
+        if (points.isEmpty()) {
+            continue;
+        }
+
+        auto it = std::lower_bound(points.begin(), points.end(), targetX, [](const GraphPoint &point, qreal value) {
+            return point.x < value;
+        });
+
+        auto tryPoint = [&](QVector<GraphPoint>::const_iterator candidate) {
+            if (candidate == points.end()) {
+                return;
+            }
+
+            const qreal distance = std::abs(candidate->x - targetX);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestX = candidate->x;
+            }
+        };
+
+        tryPoint(it);
+        if (it != points.begin()) {
+            tryPoint(std::prev(it));
+        }
+    }
+
+    return bestX;
 }

@@ -6,6 +6,7 @@
 #include "legendmodel.h"
 
 #include <QObject>
+#include <limits>
 
 /*!
  * \brief Основной менеджер модуля графиков и внешний API для работы с ним.
@@ -21,6 +22,7 @@ class GraphManager : public QObject
     Q_PROPERTY(qreal yMaximum READ yMaximum NOTIFY yAxisChanged)
     Q_PROPERTY(bool hasSelection READ hasSelection NOTIFY selectionChanged)
     Q_PROPERTY(qreal selectedX READ selectedX NOTIFY selectionChanged)
+    Q_PROPERTY(bool legendExpanded READ isLegendExpanded WRITE setLegendExpanded NOTIFY legendExpandedChanged)
 
 public:
     /*!
@@ -83,6 +85,17 @@ public:
      * \brief Возвращает объект отрисовщика.
      */
     GraphRenderer *renderer() const;
+
+    /*!
+     * \brief Возвращает состояние раскрытия панели легенды.
+     */
+    bool isLegendExpanded() const;
+
+    /*!
+     * \brief Устанавливает состояние раскрытия панели легенды.
+     * \param expanded Новое состояние панели.
+     */
+    void setLegendExpanded(bool expanded);
 
     /*!
      * \brief Добавляет новый график.
@@ -150,9 +163,20 @@ public:
     Q_INVOKABLE void selectNearestPointX(const QRectF &graphArea, qreal clickX);
 
     /*!
+     * \brief Ищет ближайшую точку по переданному значению оси X и активирует выделение.
+     * \param xValue Значение оси X, относительно которого выполняется поиск.
+     */
+    Q_INVOKABLE void selectNearestPointForXValue(qreal xValue);
+
+    /*!
      * \brief Сбрасывает текущее выделение.
      */
     Q_INVOKABLE void clearSelection();
+
+    /*!
+     * \brief Переключает состояние раскрытия панели легенды.
+     */
+    Q_INVOKABLE void toggleLegendExpanded();
 
     /*!
      * \brief Заполняет менеджер тестовыми данными.
@@ -186,12 +210,18 @@ signals:
      */
     void xValueSelected(qreal x);
 
+    /*!
+     * \brief Сигнал отправляется при изменении состояния панели легенды.
+     */
+    void legendExpandedChanged();
+
 protected:
     /*!
      * \brief Подключает сигналы графика к сигналам менеджера.
      * \param series График для подключения.
      */
     void attachSeries(GraphSeries *series);
+    qreal findNearestSeriesX(qreal targetX) const;
 
 private:
     GraphSeriesModel m_seriesModel;
@@ -201,5 +231,6 @@ private:
     AxisConfig m_xAxisBounds;
     AxisConfig m_yAxis;
     bool m_hasSelection = false;
+    bool m_legendExpanded = true;
     qreal m_selectedX = 0.0;
 };
