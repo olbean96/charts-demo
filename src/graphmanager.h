@@ -23,6 +23,8 @@ class GraphManager : public QObject
     Q_PROPERTY(bool hasSelection READ hasSelection NOTIFY selectionChanged)
     Q_PROPERTY(qreal selectedX READ selectedX NOTIFY selectionChanged)
     Q_PROPERTY(bool legendExpanded READ isLegendExpanded WRITE setLegendExpanded NOTIFY legendExpandedChanged)
+    Q_PROPERTY(int contentWidth READ contentWidth NOTIFY contentSizeChanged)
+    Q_PROPERTY(int contentHeight READ contentHeight NOTIFY contentSizeChanged)
 
 public:
     /*!
@@ -85,6 +87,16 @@ public:
      * \brief Возвращает объект отрисовщика.
      */
     GraphRenderer *renderer() const;
+
+    /*!
+     * \brief Возвращает рекомендуемую ширину области графика.
+     */
+    int contentWidth() const;
+
+    /*!
+     * \brief Возвращает рекомендуемую высоту области графика.
+     */
+    int contentHeight() const;
 
     /*!
      * \brief Возвращает состояние раскрытия панели легенды.
@@ -214,6 +226,11 @@ signals:
      * \brief Сигнал отправляется при изменении состояния панели легенды.
      */
     void legendExpandedChanged();
+
+    /*!
+     * \brief Сигнал отправляется при изменении рекомендуемого размера области графика.
+     */
+    void contentSizeChanged();
 
 protected:
     /*!

@@ -72,6 +72,16 @@ GraphRenderer *GraphManager::renderer() const
     return const_cast<GraphRenderer *>(&m_renderer);
 }
 
+int GraphManager::contentWidth() const
+{
+    return m_renderer.contentSize(m_xAxis, m_yAxis).width();
+}
+
+int GraphManager::contentHeight() const
+{
+    return m_renderer.contentSize(m_xAxis, m_yAxis).height();
+}
+
 bool GraphManager::isLegendExpanded() const
 {
     return m_legendExpanded;
@@ -151,6 +161,7 @@ void GraphManager::setXAxis(qreal minimum, qreal maximum, qreal tickStep, const 
     m_xAxis = {minimum, maximum, tickStep, title};
     m_xAxisBounds = m_xAxis;
     emit xAxisChanged();
+    emit contentSizeChanged();
 }
 
 void GraphManager::setYAxis(qreal minimum, qreal maximum, qreal tickStep, const QString &title)
@@ -161,6 +172,7 @@ void GraphManager::setYAxis(qreal minimum, qreal maximum, qreal tickStep, const 
 
     m_yAxis = {minimum, maximum, tickStep, title};
     emit yAxisChanged();
+    emit contentSizeChanged();
 }
 
 void GraphManager::zoomX(qreal factor, qreal centerRatio)
@@ -180,6 +192,7 @@ void GraphManager::zoomX(qreal factor, qreal centerRatio)
         m_xAxis.minimum = m_xAxisBounds.minimum;
         m_xAxis.maximum = m_xAxisBounds.maximum;
         emit xAxisChanged();
+        emit contentSizeChanged();
         return;
     }
 
@@ -201,6 +214,7 @@ void GraphManager::zoomX(qreal factor, qreal centerRatio)
     m_xAxis.minimum = minimum;
     m_xAxis.maximum = maximum;
     emit xAxisChanged();
+    emit contentSizeChanged();
 }
 
 void GraphManager::selectNearestPointX(const QRectF &graphArea, qreal clickX)

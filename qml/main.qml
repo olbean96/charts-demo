@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Controls 2.15
 import QtQuick.Window 2.15
 
 Window {
@@ -9,8 +10,16 @@ Window {
     title: "QImage/QPainter Charts Demo"
     color: "#f4efe7"
 
-    ChartsWidget {
+    ScrollView {
+        id: scrollView
         anchors.fill: parent
-        manager: graphManager
+        clip: true
+
+        ChartsWidget {
+            manager: graphManager
+            fillAvailableWhenSmaller: true
+            availableWidth: scrollView.availableWidth
+            availableHeight: scrollView.availableHeight
+        }
     }
 }

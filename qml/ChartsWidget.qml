@@ -6,6 +6,13 @@ Item {
     id: root
 
     property var manager
+    property bool fillAvailableWhenSmaller: false
+    property real availableWidth: 0
+    property real availableHeight: 0
+    implicitWidth: manager ? manager.contentWidth + outerMargin * 2 : 960
+    implicitHeight: manager ? manager.contentHeight + outerMargin * 2 : 640
+    width: fillAvailableWhenSmaller ? Math.max(implicitWidth, availableWidth) : implicitWidth
+    height: fillAvailableWhenSmaller ? Math.max(implicitHeight, availableHeight) : implicitHeight
 
     readonly property int outerMargin: 24
     readonly property int panelMargin: 28

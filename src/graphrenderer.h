@@ -67,6 +67,13 @@ public:
                                    const AxisConfig &xAxis) const;
 
     /*!
+     * \brief Возвращает рекомендуемый размер области рисования для текущих осей.
+     * \param xAxis Настройки оси X.
+     * \param yAxis Настройки оси Y.
+     */
+    QSize contentSize(const AxisConfig &xAxis, const AxisConfig &yAxis) const;
+
+    /*!
      * \brief Возвращает рабочую область графика внутри виджета.
      * \param size Полный размер области рисования.
      */

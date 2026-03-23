@@ -6,6 +6,7 @@
 #include <QVector>
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 namespace {
@@ -18,6 +19,19 @@ constexpr qreal kXAxisLabelWidth = 126.0;
 constexpr qreal kXAxisDateTop = 6.0;
 constexpr qreal kXAxisTimeTop = 22.0;
 constexpr qreal kXAxisLineHeight = 14.0;
+constexpr int kMinimumChartWidth = 720;
+constexpr int kMinimumChartHeight = 360;
+constexpr int kPixelsPerXTick = 116;
+constexpr int kPixelsPerYTick = 32;
+
+int tickCount(const AxisConfig &axis)
+{
+    if (axis.tickStep <= 0.0 || axis.maximum <= axis.minimum) {
+        return 2;
+    }
+
+    return qMax(2, int(std::floor((axis.maximum - axis.minimum) / axis.tickStep + 0.5)) + 1);
+}
 }
 
 GraphRenderer::GraphRenderer(QObject *parent)
@@ -102,6 +116,15 @@ GraphRenderer::SelectionResult GraphRenderer::selectNearestX(const QRectF &graph
     }
 
     return {found, bestX};
+}
+
+QSize GraphRenderer::contentSize(const AxisConfig &xAxis, const AxisConfig &yAxis) const
+{
+    const int contentWidth = qMax(kMinimumChartWidth, tickCount(xAxis) * kPixelsPerXTick);
+    const int contentHeight = qMax(kMinimumChartHeight, tickCount(yAxis) * kPixelsPerYTick);
+
+    return QSize(kLeftMargin + contentWidth + kRightMargin,
+                 kTopMargin + contentHeight + kBottomMargin);
 }
 
 QRectF GraphRenderer::chartRect(const QSize &size) const
